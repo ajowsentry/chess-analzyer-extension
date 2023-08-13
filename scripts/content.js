@@ -1,43 +1,63 @@
-function beginScan() {
+(function() {
   const Analyzer = (() => {
-    let platform = 'unknown', scanner = null;
-    if (location.host.match(/^(?:www\.)chess\.com$/)) {
+    let platform = 'unknown', page = null;
+    if (location.host.match(/^(?:www\.)?chess\.com$/)) {
       platform = 'chess.com';
-      scanner = window.chessAnalyzer.platforms.ChessCom;
+      page = window.chessAnalyzer.platforms.ChessCom;
     }
-    else if (location.host.match(/^(?:www\.)lichess\.org$/)) {
+    else if (location.host.match(/^(?:www\.)?lichess\.org$/)) {
       platform = 'lichess.org';
-      scanner = window.chessAnalyzer.platforms.ChessCom;
+      page = window.chessAnalyzer.platforms.ChessCom;
     }
     
-    return { platform, scanner };
+    return { name: platform, platform: page };
   })();
 
-  if (Analyzer.platform === 'unknown' || typeof Analyzer.scanner === 'undefined') {
+  if (Analyzer.name === 'unknown' || typeof Analyzer.platform === 'undefined') {
     return;
   }
 
   let board, timeoutID;
+  
+  const port = new window.chessAnalyzer.ContentPort();
+  const storage = window.chessAnalyzer.Storage;
+  
 
-  Analyzer.scanner.onInitializing(() => {
+  console.log({port});
+
+  Analyzer.platform.onInitializing(async () => {
     board = new window.chessAnalyzer.Board();
+    await port.sendCommand('initialize');
+    await port.sendCommand('setOptions', storage.getOptions());
   });
 
-  Analyzer.scanner.onMoveAdded((move) => {
+  Analyzer.platform.onMoveAdded((move) => {
     let oMove = board.move(move);
-    console.debug(`${move} -> ${oMove._from.key}${oMove._to.key}`);
+    console.debug(`${move} -> ${oMove.from.key}${oMove.to.key}`);
     if(typeof timeoutID !== 'undefined')
       clearTimeout(timeoutID);
 
-    timeoutID = setTimeout(() => {
-      console.debug(board.fenstring)
+    timeoutID = setTimeout(async () => {
+      let expected = board.fenstring;
+      let actual = Analyzer.platform.scanBoard();
+      // console.debug(`expected: ${expected}`);
+      // console.debug(`actual  : ${actual}`);
+      // console.debug(`valid   : ${expected.startsWith(actual)}`);
+      // console.debug();
+
+      let time = Analyzer.platform.getTime();
+      await port.sendCommand('setPosition', {
+        fen: board.fenstring,
+      });
+      let {move} = await port.sendCommand('go', {
+        depth: 10,
+        wtime: time.w,
+        btime: time.b,
+      });
+      Analyzer.platform.markMove(move);
     }, 100);
   });
 
-  Analyzer.scanner.initialize();
-
-  if(typeof Analyzer.scanner.removeAd === 'function')
-    Analyzer.scanner.removeAd();
-};
-
-$(beginScan);
+  if(typeof Analyzer.platform.removeAd === 'function')
+    Analyzer.platform.removeAd();
+})();

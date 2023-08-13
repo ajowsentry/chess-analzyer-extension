@@ -14,8 +14,15 @@
   const nodeSet = new Set();
   const moveSet = new Array();
 
+  const elementsID = {
+    markFrom: 'ajowsentry-chessanalyzer-mark-from',
+    markTo: 'ajowsentry-chessanalyzer-mark-to',
+    button: 'ajowsentry-chessanalyzer-button',
+  };
+
+  let isObserving = false;
+
   let onMoveAddedEvent, onInitializedEvent, onInitializingEvent;
-  let retries = 0;
 
   const observer = new MutationObserver(mutationList => {
     for(let mutation of mutationList) {
@@ -38,8 +45,12 @@
   function scanMove(node) {
     if(!nodeSet.has(node)) {
       let move = '';
-      for(let n of node.childNodes)
-        move += n.nodeName == 'SPAN' ? n.dataset.figurine : n.data;
+      for(let n of node.childNodes) {
+        if(n.nodeName == 'SPAN' && n.dataset.figurine)
+          move += n.dataset.figurine;
+        else if(n.nodeName == '#text')
+          move += n.data;
+      }
       
       nodeSet.add(node);
       moveSet.push(move);
@@ -58,15 +69,26 @@
     return moveSet;
   }
 
-  function observeMoves() {
-    let element = document.querySelector('move-list-wc');
-    if(element === null) {
-      if(retries++ < 100)
-        setTimeout(observeMoves, 500);
-      else retries = 0;
+  async function getElementWait(querySelector, retries) {
+    if(typeof retries === 'undefined')
+      retries = 30;
+    
+    return await new Promise((resolve, reject) => {
+      let retries = 200;
+      let callback = () => {
+        let element = document.querySelector(querySelector);
+        if(element !== null)
+          resolve(element);
+        else if(retries-- > 0)
+          setTimeout(callback, 500);
+        else reject();
+      };
+      callback();
+    });
+  }
 
-      return;
-    }
+  async function observeMoves() {
+    let element = await getElementWait('#board-layout-sidebar');
 
     nodeSet.clear();
     moveSet.length = 0;
@@ -79,12 +101,11 @@
       characterData: false,
       characterDataOldValue: false,
     });
-    retries = 0;
   }
 
   function removeAd() {
     document.body.classList.remove('with-und');
-    document.getElementById('board-layout-ad')?.remove();
+    getElementWait('#board-layout-ad').then(el => el.remove());
   }
 
   function initialize() {
@@ -115,7 +136,12 @@
 
   function getMillis(side) {
     let sideClass = side == 'b' ? '.clock-black' : '.clock-white';
-    let timeString = document.querySelector(sideClass).innerText;
+    let clockElement = document.querySelector(sideClass);
+    if(clockElement === null) {
+      return 86_400_000;
+    }
+
+    let timeString = clockElement.innerText;
     let millis = 0;
     if(timeString.endsWith('days')) {
       millis = 86_400_000 * parseInt(timeString.split(' ')[0]);
@@ -138,7 +164,102 @@
     };
   }
 
+  function createElement(htmlString) {
+    let el = document.createElement('div');
+    el.innerHTML = htmlString;
+    return el.firstChild;
+  }
+
+  async function markMove(move) {
+    let elFrom = document.getElementById(elementsID.markFrom);
+    if(elFrom === null) {
+      elFrom = createElement(`<div id="${elementsID.markFrom}" style="border: 3px dotted red; background: transparent;" class="highlight"></div>`);
+      let board = await getElementWait('chess-board');
+      if(!board) return;
+      board.prepend(elFrom);
+    }
+
+    let elTo = document.getElementById(elementsID.markTo);
+    if(elTo === null) {
+      elTo = createElement(`<div id="${elementsID.markTo}" style="border: 3px solid red; background: transparent;" class="highlight"></div>`);
+      let board = await getElementWait('chess-board');
+      if(!board) return;
+      board.prepend(elTo);
+    }
+
+    elFrom.classList.forEach(c => elFrom.classList.remove(c));
+    elTo.classList.forEach(c => elTo.classList.remove(c));
+
+    if(move === '(none)') {
+      elFrom.remove();
+      elTo.remove();
+      return;    
+    }
+
+    elFrom.classList.add('highlight');
+    elTo.classList.add('highlight');
+
+    let from = `${move.codePointAt(0) - 96}${move[1]}`;
+    let to = `${move.codePointAt(2) - 96}${move[3]}`;
+
+    elFrom.classList.add(`square-${from}`);
+    elTo.classList.add(`square-${to}`);
+  }
+
+  getElementWait('.nav-menu-area').then(menu => {
+    let analyzerButton = document.getElementById('ajowsentry-chessanalyzer-button');
+    if(!analyzerButton) {
+      menu.prepend(createElement(`<button id="ajowsentry-chessanalyzer-button" aria-label="Analyzer" class="nav-action" type="button" title="Toggle analyzer">
+        <div><span class="icon-font-chess king-black"></span></div>
+        <span class="nav-link-text">
+          <span class="light">Analyzer</span>
+        </span>
+      </button>`));
+    }
+  });
+
+  getElementWait('#ajowsentry-chessanalyzer-button').then(button => {
+    button.addEventListener('click', function() {
+      if(isObserving) {
+        observer.disconnect();
+        button.querySelector('.icon-font-chess').classList.remove('king-white');
+        button.querySelector('.icon-font-chess').classList.add('king-black');
+        isObserving = false;
+        document.getElementById('mark-from')?.remove();
+        document.getElementById('mark-to')?.remove();
+      }
+      else {
+        initialize();
+        button.querySelector('.icon-font-chess').classList.add('king-white');
+        button.querySelector('.icon-font-chess').classList.remove('king-black');
+        isObserving = true;
+      }
+    });
+  });
+
+  function scanBoard() {
+    let arr = new Array(64).fill('1');
+    document.querySelectorAll('chess-board .piece').forEach(el => {
+      let classValue = el.attributes.class.value;
+      let [_square, square] = classValue.match(/square-(\d\d)/);
+      let [piece] = classValue.match(/[bw][rnbqkp]/);
+      
+      piece = piece[0] == 'b' ? piece[1].toLowerCase() : piece[1].toUpperCase();
+      let row = 8 - parseInt(square[1]);
+      let col = parseInt(square[0]) - 1;
+
+      arr[col + row * 8] = piece;
+    });
+
+    let placement = arr.join('').match(/.{8}/g).join('/');
+    for(let n = 8; n >= 2; n--) {
+      placement = placement.replaceAll('1'.repeat(n), n)
+    };
+
+    return placement;
+  }
+
   window.chessAnalyzer.platforms.ChessCom = {
-    initialize, removeAd, onInitialized, onMoveAdded, onInitializing, getTime,
+    initialize, removeAd, onInitialized, onMoveAdded, onInitializing, getTime, markMove, scanBoard
   };
 })();

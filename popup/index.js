@@ -1,10 +1,8 @@
 (async function() {
-  const settingsKey = 'com.ajowsentry.chessAnalyzer.settings';
 
   const port = new window.chessAnalyzer.ContentPort();
   const storage = window.chessAnalyzer.Storage;
 
-  // console.log('{tableForm, identity}');
   await port.sendCommand('initialize');
   let availableOptions = await port.sendCommand('availableOptions');
   let identity = await port.sendCommand('identity');
