@@ -21,9 +21,31 @@
   
   const port = new window.chessAnalyzer.ContentPort();
   const storage = window.chessAnalyzer.Storage;
-  
 
-  console.log({port});
+  let queue = [];
+  let isProcessing = false;
+  async function enqueueBestmove(fenstring) {
+    queue.push(fenstring);
+    if(isProcessing)
+      return;
+
+    isProcessing = true;
+    while(queue.length > 0) {
+      let fen = queue.shift();
+
+      let time = Analyzer.platform.getTime();
+      await port.sendCommand('setPosition', { fen });
+      let {move} = await port.sendCommand('go', {
+        depth: 10,
+        wtime: time.w,
+        btime: time.b,
+      });
+      console.log('best ' + move);
+      Analyzer.platform.markMove(move);
+    }
+
+    isProcessing = false;
+  }
 
   Analyzer.platform.onInitializing(async () => {
     board = new window.chessAnalyzer.Board();
@@ -37,24 +59,27 @@
     if(typeof timeoutID !== 'undefined')
       clearTimeout(timeoutID);
 
-    timeoutID = setTimeout(async () => {
-      let expected = board.fenstring;
-      let actual = Analyzer.platform.scanBoard();
+    timeoutID = setTimeout(() => {
+      enqueueBestmove(board.fenstring);
+      // let expected = board.fenstring;
+      // let actual = Analyzer.platform.scanBoard();
       // console.debug(`expected: ${expected}`);
       // console.debug(`actual  : ${actual}`);
       // console.debug(`valid   : ${expected.startsWith(actual)}`);
-      // console.debug();
+      // console.debug(board.fenstring);
+      // console.debug(board.renderString());
 
-      let time = Analyzer.platform.getTime();
-      await port.sendCommand('setPosition', {
-        fen: board.fenstring,
-      });
-      let {move} = await port.sendCommand('go', {
-        depth: 10,
-        wtime: time.w,
-        btime: time.b,
-      });
-      Analyzer.platform.markMove(move);
+      // let time = Analyzer.platform.getTime();
+      // await port.sendCommand('setPosition', {
+      //   fen: board.fenstring,
+      // });
+      // let {move} = await port.sendCommand('go', {
+      //   depth: 10,
+      //   wtime: time.w,
+      //   btime: time.b,
+      // });
+      // console.log('best ' + move);
+      // Analyzer.platform.markMove(move);
     }, 100);
   });
 

@@ -172,38 +172,31 @@
 
   async function markMove(move) {
     let elFrom = document.getElementById(elementsID.markFrom);
-    if(elFrom === null) {
-      elFrom = createElement(`<div id="${elementsID.markFrom}" style="border: 3px dotted red; background: transparent;" class="highlight"></div>`);
-      let board = await getElementWait('chess-board');
-      if(!board) return;
-      board.prepend(elFrom);
+    if(elFrom !== null) {
+      elFrom.remove();
     }
 
     let elTo = document.getElementById(elementsID.markTo);
-    if(elTo === null) {
-      elTo = createElement(`<div id="${elementsID.markTo}" style="border: 3px solid red; background: transparent;" class="highlight"></div>`);
-      let board = await getElementWait('chess-board');
-      if(!board) return;
-      board.prepend(elTo);
+    if(elTo !== null) {
+      elTo.remove();
     }
-
-    elFrom.classList.forEach(c => elFrom.classList.remove(c));
-    elTo.classList.forEach(c => elTo.classList.remove(c));
 
     if(move === '(none)') {
-      elFrom.remove();
-      elTo.remove();
       return;    
     }
-
-    elFrom.classList.add('highlight');
-    elTo.classList.add('highlight');
+    
+    elFrom = createElement(`<div id="${elementsID.markFrom}" style="border: 3px dotted red; background: transparent;" class="highlight"></div>`);
+    elTo = createElement(`<div id="${elementsID.markTo}" style="border: 3px solid red; background: transparent;" class="highlight"></div>`);
 
     let from = `${move.codePointAt(0) - 96}${move[1]}`;
     let to = `${move.codePointAt(2) - 96}${move[3]}`;
 
     elFrom.classList.add(`square-${from}`);
     elTo.classList.add(`square-${to}`);
+
+    let board = await getElementWait('chess-board');
+    board.prepend(elFrom);
+    board.prepend(elTo);
   }
 
   getElementWait('.nav-menu-area').then(menu => {
