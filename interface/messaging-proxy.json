@@ -1,0 +1,7 @@
+{
+  "name": "com.ajowsentry.chessanalyzer.engine",
+  "description": "Native messaging proxy to console app",
+  "path": ".\\messaging-proxy.bat",
+  "type": "stdio",
+  "allowed_extensions": [ "chessanalyzer@ajowsentry.com" ]
+}

@@ -1,0 +1,29 @@
+[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2023.08.10"]
+[Round "?"]
+[White "howitzer14"]
+[Black "alexrustemov"]
+[Result "1-0"]
+[ECO "C01"]
+[WhiteElo "2975"]
+[BlackElo "2851"]
+[TimeControl "180"]
+[EndTime "15:08:24 PDT"]
+[Termination "howitzer14 won on time"]
+
+1. e4 e6 2. d4 d5 3. exd5 exd5 4. Nf3 Bf5 5. Bf4 Nc6 6. Bb5 Ne7 7. O-O a6 8. Ba4
+f6 9. Re1 Qd7 10. Nbd2 O-O-O 11. c3 g5 12. Be3 Ng6 13. Nf1 h5 14. b4 h4 15. b5
+axb5 16. Bxb5 h3 17. g3 Qd6 18. Qa4 Kb8 19. N3d2 Na7 20. Be2 Ne7 21. c4 dxc4 22.
+Nxc4 Qc6 23. Qxc6 Nexc6 24. Red1 Nb5 25. d5 Nc3 26. Bf3 Nxd1 27. Rxd1 Nb4 28.
+Bd4 Be7 29. Nfe3 Bc8 30. Rb1 Na6 31. Na5 Bb4 32. Nc6+ bxc6 33. a3 c5 34. Bxf6
+Bb7 35. axb4 cxb4 36. Be2 Ka7 37. Bxa6 Kxa6 38. Rxb4 Rhe8 39. Bxd8 Rxd8 40. Rd4
+c5 41. Rd1 Bc8 42. f4 gxf4 43. gxf4 Kb5 44. Kf2 c4 45. Rc1 Ba6 46. Rxc4 Rxd5 47.
+Nxd5 Kxc4 48. Nc7 Bc8 49. f5 Kc5 50. Kg3 Kd6 51. f6 Bf5 52. Nd5 Ke6 53. Ne3 Bg6
+54. Ng4 Bf5 55. Kxh3 Bxg4+ 56. Kxg4 Kxf6 57. Kh5 Kg7 58. Kg5 Kh7 59. Kh4 Kg7 60.
+Kh5 Kh8 61. Kg5 Kg8 62. Kf6 Kh8 63. Kg6 Kg8 64. Kh6 Kh8 65. Kh5 Kg8 66. Kg4 Kh8
+67. Kh4 Kg8 68. Kg3 Kh8 69. Kh3 Kg8 70. Kg2 Kh8 71. Kh1 Kg8 72. Kg1 Kh8 73. Kf2
+Kg8 74. Kf3 Kh8 75. Kg3 Kg8 76. Kg2 Kh8 77. Kf2 Kg8 78. Ke3 Kh8 79. Kf4 Kg8 80.
+h3 Kh8 81. Kg4 Kg8 82. Kg3 Kh8 83. Kf3 Kg8 84. Kg2 Kh8 85. Kh2 Kg8 86. Kh1 Kh8
+87. Kg1 Kg8 88. Kf1 Kh8 89. Ke1 Kg8 90. Kd1 Kh8 91. Ke2 Kg8 92. Kf3 Kh8 93. Kg4
+Kg8 94. Kh4 1-0
