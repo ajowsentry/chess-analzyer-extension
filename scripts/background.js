@@ -1,8 +1,7 @@
 (function() {
 
   const contentPortName = 'com.ajowsentry.chessAnalyzer.contentScript';
-  const engine = new window.chessAnalyzer.Engine();
-  
+  const engine = window.chessAnalyzer.Engine;
 
   browser.runtime.onConnect.addListener(port => {
     if(port.name === contentPortName) {
